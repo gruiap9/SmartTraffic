@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CivicSignal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="topbar">
+      <div class="brand">Civic<span class="dot">Signal</span></div>
+
+      <div class="topbar-group">
+        <span class="label-text" style="color:var(--muted)">Map</span>
+        <select id="map-picker"></select>
+      </div>
+
+      <div class="topbar-group">
+        <span class="label-text" style="color:var(--muted)">Compare</span>
+        <select id="compare-picker">
+          <option value="fixed">fixed vs CivicSignal</option>
+          <option value="actuated">actuated vs CivicSignal</option>
+          <option value="greenwave">green wave vs CivicSignal</option>
+          <option value="all">all four</option>
+        </select>
+      </div>
+
+      <span id="rush-pill" class="pill">off-peak</span>
+
+      <div class="topbar-spacer"></div>
+
+      <span id="clock" class="clock">0:00</span>
+      <button id="btn-play" title="Play/Pause (Space)">⏸</button>
+      <button id="btn-reset" title="Reset">⟲</button>
+
+      <div class="topbar-group">
+        <span class="label-text" style="color:var(--muted)">Speed</span>
+        <input id="speed" type="range" min="0.5" max="10" step="0.5" value="1">
+        <span id="speed-label" class="pill">1×</span>
+      </div>
+
+      <button id="btn-heat" title="Heat (H)">🔥</button>
+      <span id="conn" class="conn" title="connection"></span>
+    </div>
+
+    <div id="main">
+      <div id="stage">
+        <div id="panes" class="panes-2"></div>
+        <div id="chartstrip"><canvas id="chart"></canvas></div>
+      </div>
+      <div id="sidebar">
+        <div class="tabs">
+          <button class="tab active" data-tab="impact">Impact</button>
+          <button class="tab" data-tab="policy">Policy</button>
+          <button class="tab" data-tab="events">Events</button>
+          <button class="tab" data-tab="inspect">Inspect</button>
+        </div>
+
+        <!-- IMPACT -->
+        <section class="tab-panel active" data-panel="impact">
+          <div class="panel-head">
+            <span>Impact</span>
+            <div class="seg">
+              <button class="seg-btn active" data-window="start">Since start</button>
+              <button class="seg-btn" data-window="recent">Last 2 min</button>
+            </div>
+            <button class="popout" data-view="impact" title="Pop out">⧉</button>
+          </div>
+          <div id="impact-heroes" class="heroes"></div>
+          <div id="impact-scoreboard" class="scoreboard"></div>
+          <div id="impact-yearly" class="yearly"></div>
+        </section>
+
+        <!-- POLICY -->
+        <section class="tab-panel" data-panel="policy">
+          <div class="panel-head"><span>Policy</span>
+            <button class="popout" data-view="policy" title="Pop out">⧉</button>
+          </div>
+          <div id="presets" class="presets"></div>
+          <div id="sliders" class="sliders"></div>
+          <label class="toggle"><input type="checkbox" id="preempt-toggle" checked>
+            Emergency preemption</label>
+          <div class="copilot">
+            <div class="copilot-head">City co-pilot</div>
+            <textarea id="copilot-goal" placeholder="e.g. keep buses moving and cut downtown emissions"></textarea>
+            <button id="copilot-ask">Ask the co-pilot</button>
+            <div id="copilot-result" class="copilot-result"></div>
+          </div>
+        </section>
+
+        <!-- EVENTS -->
+        <section class="tab-panel" data-panel="events">
+          <div class="panel-head"><span>Events</span>
+            <button class="popout" data-view="events" title="Pop out">⧉</button>
+          </div>
+          <div class="event-buttons">
+            <button id="ev-amb" class="ev">🚑 <span class="ev-label">Ambulance</span></button>
+            <button id="ev-surge" class="ev">🎭 <span class="ev-label">Surge</span></button>
+            <button id="ev-crash" class="ev">💥 <span class="ev-label">Crash</span></button>
+          </div>
+          <div class="race-head">Ambulance race</div>
+          <div id="amb-race" class="race"></div>
+          <div class="log-head">Event log</div>
+          <div id="event-log" class="event-log"></div>
+        </section>
+
+        <!-- INSPECT -->
+        <section class="tab-panel" data-panel="inspect">
+          <div class="panel-head"><span>Inspect</span>
+            <button class="popout" data-view="inspect" title="Pop out">⧉</button>
+          </div>
+          <div id="inspect-name" class="inspect-name">Click a light to inspect it</div>
+          <div id="inspect-body" class="inspect-body"></div>
+        </section>
+
+        <!-- Follow-a-driver card (shown across tabs when following) -->
+        <div id="follow-card" class="follow-card" style="display:none">
+          <div class="follow-head">Same driver, same departure</div>
+          <div id="follow-body"></div>
+          <button id="follow-clear" class="follow-clear">Stop following</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <!-- pane template -->
+  <template id="pane-tpl">
+    <div class="pane">
+      <div class="pane-head">
+        <span class="pane-name"></span>
+        <span class="pane-stats">
+          <span>queued <b class="st-q">0</b></span>
+          <span>moving <b class="st-m">0</b></span>
+          <span>delay <b class="st-d">0</b>s</span>
+          <span class="amb" style="display:none">🚑 <b class="st-a">0</b>s</span>
+        </span>
+      </div>
+      <div class="pane-strip"></div>
+      <div class="canvas-wrap">
+        <canvas class="c-base"></canvas>
+        <canvas class="c-heat"></canvas>
+        <canvas class="c-live"></canvas>
+      </div>
+    </div>
+  </template>
+
+  <script src="/web/vendor/chart.umd.min.js"></script>
+  <script src="/web/sidebar.js"></script>
+  <script src="/web/app.js"></script>
+</body>
+</html>

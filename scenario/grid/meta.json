@@ -1,0 +1,53 @@
+{
+  "id": "grid",
+  "title": "Demo Grid (3\u00d73)",
+  "cfg": "scenario/grid/sim.sumocfg",
+  "rush": [
+    600,
+    1800
+  ],
+  "end": 2400,
+  "expected_tls": 9,
+  "rotate_deg": 0,
+  "ambulance": {
+    "label": "Ambulance \u2192 right-top",
+    "route": "amb_route"
+  },
+  "surge": {
+    "label": "Rush surge",
+    "from": [
+      "left0A0",
+      "left1A1",
+      "left2A2"
+    ],
+    "to": [
+      "C0right0",
+      "C1right1",
+      "C2right2"
+    ],
+    "n": 120,
+    "over": 240
+  },
+  "crash": {
+    "label": "Crash in the grid",
+    "edge": "A1B1",
+    "lanes": [
+      0,
+      1
+    ],
+    "pos": 100.0,
+    "duration": 300
+  },
+  "landmarks": [
+    {
+      "name": "City Hall",
+      "x": 400,
+      "y": 400
+    },
+    {
+      "name": "Market",
+      "x": 200,
+      "y": 600
+    }
+  ]
+}

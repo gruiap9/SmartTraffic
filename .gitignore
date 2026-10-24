@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.env
+
+# Recordings: ignore all run recordings except the committed demo
+recordings/*.jsonl
+!recordings/demo.jsonl
+
+# Benchmark tripinfo outputs
+results/tripinfo_*.xml

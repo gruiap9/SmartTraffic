@@ -1,0 +1,65 @@
+{
+  "id": "midtown",
+  "title": "Midtown Manhattan",
+  "rush": [
+    600,
+    1800
+  ],
+  "end": 2400,
+  "expected_tls": 54,
+  "rotate_deg": 28.3,
+  "attribution": "\u00a9 OpenStreetMap contributors",
+  "ambulance": {
+    "label": "Ambulance \u2192 Mount Sinai West",
+    "route": "amb_route"
+  },
+  "surge": {
+    "label": "Radio City show lets out",
+    "from": [
+      "420908138#0"
+    ],
+    "to": [
+      "46521994#0",
+      "226041006#3",
+      "1531577066#0",
+      "46522003#0",
+      "710571389#0",
+      "710571388#0"
+    ],
+    "n": 160,
+    "over": 240
+  },
+  "crash": {
+    "label": "Crash on 5th Ave at St. Patrick's",
+    "edge": "1352944235#0",
+    "lanes": [
+      0,
+      1
+    ],
+    "pos": 20.0,
+    "duration": 300
+  },
+  "landmarks": [
+    {
+      "name": "Radio City",
+      "x": 1213.3,
+      "y": 1032.8
+    },
+    {
+      "name": "St. Patrick's",
+      "x": 1463.3,
+      "y": 872.8
+    },
+    {
+      "name": "MoMA",
+      "x": 1363.3,
+      "y": 1172.8
+    },
+    {
+      "name": "Grand Central \u2193",
+      "x": 1613.3,
+      "y": 592.8
+    }
+  ],
+  "cfg": "scenario/midtown/sim.sumocfg"
+}
