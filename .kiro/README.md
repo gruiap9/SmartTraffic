@@ -10,14 +10,6 @@ Project context Kiro loads into every (or matched) request.
 - `architecture.md` — loaded when editing `core/*.py`; the exact dataclasses,
   the controller's scoring/timing, and the runner's responsibilities.
 
-## hooks/
-Event-driven automation Kiro runs during a session.
-- `test-on-core-save.json` — runs `pytest` on save of any `core/*.py`.
-- `check-future-annotations.json` — warns if a saved `.py` file is missing the
-  required `from __future__ import annotations` header.
-- `verify-sim-output.json` — before running a sim/benchmark command, reminds
-  the agent to verify real output, not just a zero exit code.
-
 ## specs/civicsignal/
 The 11-step build plan as a Kiro spec.
 - `requirements.md` — user stories and acceptance criteria.
