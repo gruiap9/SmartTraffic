@@ -77,9 +77,11 @@ button:disabled { opacity: .4; cursor: default; }
 #stage { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
 
 #panes {
-  flex: 1 1 auto; display: grid; gap: 6px; padding: 6px; min-height: 0;
+  display: grid; gap: 6px; padding: 6px; min-height: 0;
   grid-template-columns: 1fr 1fr;
 }
+/* Match the screenshot: maps ~79% of the stage, chart ~21% (≈ 3.8 : 1). */
+#stage > #panes { flex: 3.8 1 0; }
 #panes.panes-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
 #panes.panes-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 
@@ -109,15 +111,18 @@ button:disabled { opacity: .4; cursor: default; }
   display: block; }
 
 /* ---------- chart strip ---------- */
+/* Match the screenshot: chart ~21% of the stage (maps : chart ≈ 3.8 : 1). */
 #chartstrip {
-  flex: 0 0 130px; border-top: 1px solid var(--line); background: var(--panel);
+  flex: 1 1 0; min-height: 0;
+  border-top: 1px solid var(--line); background: var(--panel);
   padding: 6px 10px; position: relative;
 }
 #chartstrip canvas { width: 100% !important; height: 100% !important; }
 
-/* ---------- sidebar (filled in a later step) ---------- */
+/* ---------- sidebar ---------- */
+/* Width matched to the screenshot (~284px). */
 #sidebar {
-  flex: 0 0 340px; background: var(--panel); border-left: 1px solid var(--line);
+  flex: 0 0 284px; background: var(--panel); border-left: 1px solid var(--line);
   display: flex; flex-direction: column; min-height: 0;
 }
 
