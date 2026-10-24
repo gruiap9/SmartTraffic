@@ -116,11 +116,27 @@ fine-tuning — is where Kiro was most effective.
 
 ---
 
+## Agent hooks
+
+Three hooks live in `.kiro/hooks/`, automating the guardrails we would
+otherwise apply by hand:
+
+- **`test-on-core-save`** (`PostFileSave`, matches `core/*.py`) — runs
+  `pytest` on every save of a core module, so a controller or runner
+  regression surfaces immediately.
+- **`check-future-annotations`** (`PostFileSave`, matches `*.py`) — warns when
+  a saved Python file is missing the required
+  `from __future__ import annotations` header.
+- **`verify-sim-output`** (`PreToolUse`, matches `execute_bash`) — before a
+  shell command runs, reminds the agent that a zero exit code is not proof of
+  success for a simulation or benchmark. This one fired live during the build
+  and genuinely changed how results were verified.
+
+Together they turn two project rules (tests pass; verify real output) into
+automation instead of discipline.
+
 ## Features we did not use (in the interest of honesty)
 
-- **Agent hooks** — we prototyped hooks (test-on-save, a constraint check, a
-  verify-output reminder) and they did fire live during the session, but we
-  did not keep them in the final submission.
 - **MCP** — not used. The build needed only SUMO (via pip) and the Overpass
   HTTP API, both reachable directly; no external tool server was required. An
   MCP server wrapping a live traffic-data or mapping provider would be the
