@@ -2,7 +2,7 @@
 
 CivicSignal — a live dashboard that runs four SUMO traffic-signal strategies
 side by side and lets a city steer an adaptive controller — was built almost
-entirely through Kiro. This write-up is an honest account of which Kiro
+entirely through Kiro. This document is an honest account of which Kiro
 features we used, how, and where they made the difference. We call out the
 features we did **not** use so judges can weigh the project accurately.
 
@@ -49,60 +49,59 @@ What the IDE agent gave us that plain chat would not:
 
 ## Spec-driven development
 
-The 11 prompts were a working spec before we formalized them. We later captured
-that structure as a proper Kiro spec under `.kiro/specs/civicsignal/`:
+The 11 prompts were a working spec: each described one build step with an
+explicit, checkable success criterion.
 
-- **`requirements.md`** — user stories with EARS-style acceptance criteria
-  (e.g. "THE grid scenario SHALL have exactly 9 controllable lights; THE
-  midtown scenario SHALL have exactly 54").
-- **`design.md`** — architecture, components, and the fixed frame data
-  contract.
-- **`tasks.md`** — the 11 implementation tasks, each linked back to the
-  requirements it satisfies.
+1. Project brief and constraints
+2. Setup and smoke test (venv, SUMO 1.28.0, Chart.js)
+3. Grid scenario — check: 9 controllable lights
+4. Midtown Manhattan from OpenStreetMap — check: exactly 54 signals
+5. Simulation runner (multi-sim over TraCI)
+6. Controller and tests — check: all controller tests pass
+7. Benchmark (parallel, writes results/)
+8. FastAPI server (websocket, co-pilot, replay)
+9. Dashboard, maps and layout
+10. Dashboard, sidebar and features
+11. Verify, record and document
 
-**How the spec approach improved development, vs vibe coding.** Each prompt had
-an explicit, checkable success criterion ("9 controllable lights", "exactly 54
-signals", "all controller tests pass"), so the agent could not drift. Because
-step N+1 depended on step N (the runner needs the scenario; the benchmark needs
-the controller), gating each step on its check kept a large build coherent.
-Pure vibe coding would have produced plausible-looking code that failed only at
+**How the spec approach improved development, vs vibe coding.** Because each
+prompt had a concrete target ("9 controllable lights", "exactly 54 signals",
+"all controller tests pass") the agent could not drift, and because step N+1
+depended on step N (the runner needs the scenario; the benchmark needs the
+controller), gating each step on its check kept a large build coherent. Pure
+vibe coding would have produced plausible-looking code that failed only at
 integration — instead, every layer was verified against a concrete target
 before the next was built. The acceptance criteria doubled as a test plan.
 
 ---
 
-## Steering docs
+## Steering (invariants the agent never broke)
 
-Steering made the biggest single difference to response quality. We keep two
-docs in `.kiro/steering/`:
+The single highest-leverage technique was giving Kiro the project's hard
+invariants as standing rules so they applied to every response without being
+repeated:
 
-- **`project-rules.md`** (`inclusion: always`) — the hard constraints that must
-  never be violated: Python 3.12, headless SUMO 1.28.0 from pip, **every module
-  starts with `from __future__ import annotations`**, no frontend build step,
-  the exact frame JSON contract, and "a zero exit code is not proof of
-  success." These rules were injected into every request, so the agent applied
-  them without being re-told.
-- **`architecture.md`** (`inclusion: fileMatch`, `core/*.py`) — the exact
-  dataclasses, the controller's four-term scoring and timing constants, and the
-  runner's responsibilities. Scoping it to `core/` keeps that detail out of
-  unrelated edits while guaranteeing it is present when it matters.
+- Python 3.12; SUMO 1.28.0 from pip; **headless only** (never `sumo-gui`).
+- **Every Python module starts with `from __future__ import annotations`.**
+- Frontend is plain HTML/CSS/JS with vendored Chart.js 4.4.1; **no build step**.
+- The fixed frame JSON contract and the exact `Weights` / `TLSInfo` / `LaneObs`
+  dataclass shapes.
+- "A zero exit code is not proof of success" — check real output.
 
-**The strategy that mattered most:** encoding the invariants (the frame
-contract, the dataclass shapes, the headless-only rule) as *always-on* steering
-rather than repeating them per prompt. It removed a whole class of drift — the
-agent never once proposed `sumo-gui`, an npm build, or a module missing the
-`__future__` import.
+The payoff: across a ~40-file build the agent never once proposed `sumo-gui`,
+an npm build, or a module missing the `__future__` import, and never broke the
+frame contract the server and frontend both depend on.
 
 ---
 
 ## Manual tuning after the agent build
 
-Spec-driven generation got us a complete, verified system; we then went in by
+Spec-driven generation produced a complete, verified system; we then went in by
 hand to adjust:
 
 - **Dashboard sizing** — tuned the stage split so the two map panes dominate
   (~79%) over the chart strip (~21%, a 3.8:1 flex ratio) and set the sidebar
-  width to match a reference screenshot. We added a `?v=N` cache-bust on the
+  width to match a reference screenshot. Added a `?v=N` cache-bust on the
   stylesheet link so CSS edits show on a normal browser refresh.
 - **Data inputs** — adjusted demand profiles, event specs (surge size, crash
   lanes), and the Midtown bounding box / corner intersections used to clip the
@@ -121,30 +120,27 @@ fine-tuning — is where Kiro was most effective.
 
 - **Agent hooks** — we prototyped hooks (test-on-save, a constraint check, a
   verify-output reminder) and they did fire live during the session, but we
-  removed the `hooks/` folder from the final submission to keep `.kiro/`
-  focused on steering and the spec.
+  did not keep them in the final submission.
 - **MCP** — not used. The build needed only SUMO (via pip) and the Overpass
   HTTP API, both reachable directly; no external tool server was required. An
   MCP server wrapping a live traffic-data or mapping provider would be the
   natural next extension.
 - **Property-based testing** — not used. Our controller tests are
   example-based (`tests/test_controller.py`, 13 cases on a fake 4-link light).
-  PBT would fit well for invariants like "the controller never skips yellow
-  between two greens" or "score is monotonic in queue length" — a clear next
-  step.
-- **Kiro powers** — none installed; no third-party power-bundled tooling was
-  used.
-- **Kiro CLI / Web / Crew** — not used; a single IDE Autopilot session covered
-  the whole build.
+  PBT would fit invariants like "the controller never skips yellow between two
+  greens" or "score is monotonic in queue length" — a clear next step.
+- **Kiro powers** — none installed; no third-party power-bundled tooling.
+- **Kiro CLI / Web / Crew** — not used; one IDE Autopilot session covered the
+  whole build.
 
 ---
 
 ## Bottom line
 
 Kiro's IDE agent, driven by a spec-shaped sequence of 11 prompts and governed
-by always-on steering rules, built a working multi-simulation traffic system
-end to end — and its run-inspect-fix loop caught integration bugs (dropped bus
-flows, joined-TLS id crashes, the Overpass 406) that code review alone would
-have missed. We then tuned sizing, data, and the grid by hand. The honest
-result: Kiro did the heavy lifting on breadth and correctness; we supplied the
+by always-on invariants, built a working multi-simulation traffic system end to
+end — and its run-inspect-fix loop caught integration bugs (dropped bus flows,
+joined-TLS id crashes, the Overpass 406) that code review alone would have
+missed. We then tuned sizing, data, and the grid by hand. The honest result:
+Kiro did the heavy lifting on breadth and correctness; we supplied the
 last-mile judgment.
